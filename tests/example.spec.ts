@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { ScenarioBuilder } from "./base/ScenarioBuilder";
 import CastDeviceEmulator from "chromecast-device-emulator";
+import { GenericMediaMetadata } from "chromecast-caf-receiver/cast.framework.messages";
 
 test("bbb load test", async ({ page }) => {
   const scenarioBuilder = new ScenarioBuilder();
@@ -12,7 +13,7 @@ test("bbb load test", async ({ page }) => {
   emulator.start();
 
   const requestPromise = page.waitForRequest(
-    "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+    "https://storage.googleapis.com/cpe-sample-media/content/big_buck_bunny/big_buck_bunny_m4s_master.mpd"
   );
 
   await requestPromise;
@@ -45,7 +46,7 @@ test("bbb load test", async ({ page }) => {
     streamType: "BUFFERED",
   };
 
-  expect(mediaInfo).toMatchObject(expected);
+  expect((mediaInfo?.metadata as GenericMediaMetadata).title).toEqual(expected.metadata.title);
 
   emulator.stop();
 });

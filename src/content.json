@@ -10,7 +10,15 @@
       "hls": "https://storage.googleapis.com/cpe-sample-media/content/big_buck_bunny/big_buck_bunny_m4s_master.m3u8",
       "hls_ts": "https://storage.googleapis.com/cpe-sample-media/content/big_buck_bunny/big_buck_bunny_ts_master.m3u8"
     },
-    "title": "Big Buck Bunny"
+    "title": "Big Buck Bunny",
+    "tracks": [
+      {
+        "language": "en-US",
+        "trackContentId": "/captions/bbb.vtt",
+        "trackId": 0,
+        "type": "TEXT"
+      }
+    ]
   },
   "chromecast_ad": {
     "author": "Google Inc.",

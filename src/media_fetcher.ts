@@ -1,3 +1,4 @@
+import { Track } from "chromecast-caf-receiver/cast.framework.messages";
 import obj from "./content.json";
 
 export interface Media {
@@ -8,6 +9,7 @@ export interface Media {
   duration: number;
   stream: Stream;
   title: string;
+  tracks?: Track[];
 }
 
 export interface Stream {
@@ -31,7 +33,7 @@ class MediaFetcher {
     return new Promise((accept, reject) => {
       if (obj) {
         if (obj[id as keyof typeof obj]) {
-          accept(obj[id as keyof typeof obj]);
+          accept(obj[id as keyof typeof obj] as Media);
         } else {
           reject(`${id} not found in repository.`);
         }
@@ -51,6 +53,7 @@ class MediaFetcher {
    */
   static fetchMediaInformationById(id: string) {
     return MediaFetcher.fetchMediaById(id).then((item) => {
+      debugger;
       let mediaInfo = new cast.framework.messages.MediaInformation();
       let metadata = new cast.framework.messages.GenericMediaMetadata();
 
@@ -59,6 +62,7 @@ class MediaFetcher {
       mediaInfo.contentUrl = item.stream.dash;
       mediaInfo.contentType = "application/dash+xml";
       mediaInfo.metadata = metadata;
+      mediaInfo.tracks = item.tracks;
 
       return mediaInfo;
     });

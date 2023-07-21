@@ -12,7 +12,10 @@
   "devDependencies": {
     "@playwright/test": "^1.36.1",
     "@types/chromecast-caf-receiver": "^6.0.9",
+    "@types/lodash.merge": "^4.6.7",
     "chromecast-device-emulator": "^1.2.7",
+    "lodash.merge": "^4.6.2",
+    "ts-node": "^10.9.1",
     "typescript": "^5.0.2",
     "vite": "^4.4.5"
   }

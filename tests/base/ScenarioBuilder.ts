@@ -1,4 +1,5 @@
-import { identifyMessageEvent, loadEvent } from "./events";
+import { identifyMessageEvent, loadEvent, SENDER_ID } from "./events";
+import merge from "lodash.merge";
 
 export class ScenarioBuilder {
   currentTime = 0;
@@ -9,8 +10,32 @@ export class ScenarioBuilder {
     return this.currentTime;
   }
 
-  addLoadEvent() {
-    this.events.push({ time: this.getAndIncrementTime(), ipcMessage: JSON.stringify(loadEvent) });
+  addLoadEvent(loadOverrides?: any): ScenarioBuilder {
+    this.events.push({
+      time: this.getAndIncrementTime(),
+      ipcMessage: JSON.stringify(merge(loadEvent, loadOverrides)),
+    });
+
+    return this;
+  }
+
+  closedCaptionsOn(overrides = {}): ScenarioBuilder {
+    this.events.push({
+      time: this.getAndIncrementTime(),
+      ipcMessage: JSON.stringify({
+        data: JSON.stringify({
+          requestId: 3,
+          type: "EDIT_TRACKS_INFO",
+          enableTextTracks: true,
+          mediaSessionId: 1,
+          ...overrides,
+        }),
+        namespace: "urn:x-cast:com.google.cast.media",
+        senderId: SENDER_ID,
+      }),
+    });
+
+    return this;
   }
 
   build() {

@@ -1,5 +1,5 @@
-const SENDER_ID = `7f8b100d-a1fe-e60b-5a35-6feaa22976df.2:sender-l4koe754cbxf`;
-const SESSION_ID = "46fd154e-f03d-4d58-986d-4998c43639a7";
+export const SENDER_ID = `7f8b100d-a1fe-e60b-5a35-6feaa22976df.2:sender-l4koe754cbxf`;
+export const SESSION_ID = "46fd154e-f03d-4d58-986d-4998c43639a7";
 
 export const identifyMessage = {
   applicationId: "628AC8D3",
@@ -37,7 +37,7 @@ export const loadMessage = {
   requestId: 889570262,
   sessionId: SESSION_ID,
   media: {
-    contentId: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+    contentId: "bbb",
     streamType: "BUFFERED",
     contentType: "video/mp4",
     metadata: {
