@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "devDependencies": {
+    "@playwright/test": "^1.36.1",
     "@types/chromecast-caf-receiver": "^6.0.9",
     "chromecast-device-emulator": "^1.2.7",
     "typescript": "^5.0.2",
