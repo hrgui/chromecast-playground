@@ -59,6 +59,9 @@ class MediaFetcher {
 
       metadata.title = item.title;
       metadata.subtitle = item.description;
+      if (item.poster) {
+        metadata.images = [{ url: item.poster }];
+      }
       mediaInfo.contentUrl = item.stream.dash;
       mediaInfo.contentType = "application/dash+xml";
       mediaInfo.metadata = metadata;

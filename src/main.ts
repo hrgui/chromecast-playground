@@ -1,3 +1,4 @@
+import { CastQueue } from "./queuing";
 import { MediaFetcher } from "./media_fetcher";
 import type { LoadRequestData } from "chromecast-caf-receiver/cast.framework.messages";
 
@@ -185,6 +186,8 @@ castReceiverOptions.supportedCommands =
   cast.framework.messages.Command.QUEUE_PREV |
   cast.framework.messages.Command.QUEUE_NEXT |
   cast.framework.messages.Command.STREAM_TRANSFER;
+
+castReceiverOptions.queue = new CastQueue();
 
 /*
  * Optionally enable a custom queue implementation. Custom queues allow the
