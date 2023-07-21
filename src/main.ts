@@ -185,6 +185,7 @@ castReceiverOptions.supportedCommands =
   cast.framework.messages.Command.ALL_BASIC_MEDIA |
   cast.framework.messages.Command.QUEUE_PREV |
   cast.framework.messages.Command.QUEUE_NEXT |
+  cast.framework.messages.Command.EDIT_TRACKS |
   cast.framework.messages.Command.STREAM_TRANSFER;
 
 castReceiverOptions.queue = new CastQueue();
