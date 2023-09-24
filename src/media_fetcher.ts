@@ -53,7 +53,6 @@ class MediaFetcher {
    */
   static fetchMediaInformationById(id: string) {
     return MediaFetcher.fetchMediaById(id).then((item) => {
-      debugger;
       let mediaInfo = new cast.framework.messages.MediaInformation();
       let metadata = new cast.framework.messages.GenericMediaMetadata();
 

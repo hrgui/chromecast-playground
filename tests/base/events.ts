@@ -50,6 +50,9 @@ export const loadMessage = {
         },
       ],
     },
+    customData: {
+      withAds: true,
+    },
   },
   autoplay: true,
 };

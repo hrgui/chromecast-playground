@@ -1,6 +1,10 @@
 import { CastQueue } from "./queuing";
 import { MediaFetcher } from "./media_fetcher";
-import type { LoadRequestData } from "chromecast-caf-receiver/cast.framework.messages";
+import type {
+  LoadRequestData,
+  MediaInformation,
+} from "chromecast-caf-receiver/cast.framework.messages";
+import initChromecastMux from "@mux/mux-data-chromecast";
 
 /**
  * @fileoverview This sample demonstrates how to build your own Web Receiver for
@@ -79,6 +83,39 @@ playerManager.addEventListener(cast.framework.events.EventType.ERROR, (event) =>
   }
 });
 
+let firstPlay = true;
+let playerInitTime = initChromecastMux.utils.now();
+
+/**
+ * Modifies the provided mediaInformation by adding a pre-roll break clip to it.
+ * @param {cast.framework.messages.MediaInformation} mediaInformation The target
+ * MediaInformation to be modified.
+ * @return {Promise} An empty promise.
+ */
+function addBreaks(mediaInformation: MediaInformation) {
+  castDebugLogger.debug(LOG_RECEIVER_TAG, "addBreaks: " + JSON.stringify(mediaInformation));
+  return MediaFetcher.fetchMediaById("fbb_ad").then((clip1) => {
+    mediaInformation.breakClips = [
+      {
+        id: "fbb_ad",
+        title: clip1.title,
+        contentUrl: clip1.stream.dash,
+        contentType: "application/dash+xml",
+        whenSkippable: 5,
+      },
+    ];
+
+    mediaInformation.breaks = [
+      {
+        isWatched: false,
+        id: "pre-roll",
+        breakClipIds: ["fbb_ad"],
+        position: 0,
+      },
+    ];
+  });
+}
+
 /*
  * Intercept the LOAD request to load and set the contentUrl.
  */
@@ -113,6 +150,25 @@ playerManager.setMessageInterceptor(
 
     const sourceId = source.match(ID_REGEX)?.[1] || "";
 
+    if (firstPlay) {
+      initChromecastMux(playerManager, {
+        debug: false,
+        data: {
+          env_key: import.meta.env.VITE_MUX_ENV_KEY, // required
+
+          // Metadata
+          player_name: "Custom Player", // ex: 'My Main Player'
+          player_init_time: playerInitTime,
+
+          // ... additional metadata
+          video_id: sourceId,
+        },
+      });
+      firstPlay = false;
+    } else {
+      (playerManager as any).mux.emit("videochange", { video_id: sourceId });
+    }
+
     try {
       // If the source is a url that points to an asset don't fetch from the
       // content repository.
@@ -124,6 +180,11 @@ playerManager.setMessageInterceptor(
         // Fetch the contentUrl if provided an ID or entity URL.
         castDebugLogger.debug(LOG_RECEIVER_TAG, "Interceptor received ID");
         const res = await MediaFetcher.fetchMediaInformationById(sourceId);
+
+        if (loadRequestData.media?.customData?.withAds) {
+          await addBreaks(res);
+        }
+
         loadRequestData.media = res;
         return loadRequestData;
       }
