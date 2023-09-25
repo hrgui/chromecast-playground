@@ -93,28 +93,40 @@ let playerInitTime = initChromecastMux.utils.now();
  * @return {Promise} An empty promise.
  */
 function addBreaks(mediaInformation: MediaInformation) {
-  castDebugLogger.debug(LOG_RECEIVER_TAG, "addBreaks: " + JSON.stringify(mediaInformation));
-  return MediaFetcher.fetchMediaById("fbb_ad").then((clip1) => {
-    mediaInformation.breakClips = [
-      {
-        id: "fbb_ad",
-        title: clip1.title,
-        contentUrl: clip1.stream.dash,
-        contentType: "application/dash+xml",
-        whenSkippable: 5,
-      },
-    ];
+  let vastTemplate = new cast.framework.messages.VastAdsRequest();
+  vastTemplate.adTagUrl =
+    "https://pubads.g.doubleclick.net/gampad/ads?iu=/21775744923/external/vmap_ad_samples&sz=640x480&cust_params=sample_ar%3Dpremidpostlongpod&ciu_szs=300x250&gdfp_req=1&ad_rule=1&output=vmap&unviewed_position_start=1&env=vp&impl=s&cmsid=496&vid=short_onecue&correlator=" +
+    new Date().getTime();
+  mediaInformation.vmapAdsRequest = vastTemplate;
 
-    mediaInformation.breaks = [
-      {
-        isWatched: false,
-        id: "pre-roll",
-        breakClipIds: ["fbb_ad"],
-        position: 0,
-      },
-    ];
-  });
+  // castDebugLogger.debug(LOG_RECEIVER_TAG, "addBreaks: " + JSON.stringify(mediaInformation));
+  // return MediaFetcher.fetchMediaById("fbb_ad").then((clip1) => {
+  //   mediaInformation.breakClips = [
+  //     {
+  //       id: "fbb_ad",
+  //       title: clip1.title,
+  //       contentUrl: clip1.stream.dash,
+  //       contentType: "application/dash+xml",
+  //       whenSkippable: 5,
+  //     },
+  //   ];
+
+  //   mediaInformation.breaks = [
+  //     {
+  //       isWatched: false,
+  //       id: "pre-roll",
+  //       breakClipIds: ["fbb_ad"],
+  //       position: 0,
+  //     },
+  //   ];
+  // });
 }
+
+playerManager.setMessageInterceptor(cast.framework.messages.MessageType.MEDIA_STATUS, (status) => {
+  console.log(JSON.stringify(status));
+
+  return status;
+});
 
 /*
  * Intercept the LOAD request to load and set the contentUrl.
