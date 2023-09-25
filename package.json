@@ -7,9 +7,11 @@
     "start": "npm run dev",
     "dev": "vite --port 8000 --host",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "run-scenario": "ts-node"
   },
   "devDependencies": {
+    "@mux/mux-data-chromecast": "^4.12.2",
     "@playwright/test": "^1.36.1",
     "@types/chromecast-caf-receiver": "^6.0.9",
     "@types/lodash.merge": "^4.6.7",
