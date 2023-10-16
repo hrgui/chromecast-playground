@@ -129,9 +129,6 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.MEDIA_ST
 });
 
 playerManager.addEventListener(cast.framework.events.category.CORE, (playerEvent) => {
-  const context = cast.framework.CastReceiverContext.getInstance();
-  const playerManager = context.getPlayerManager();
-
   try {
     console.log(
       "Call to playerManager.getStats() succeeded",
