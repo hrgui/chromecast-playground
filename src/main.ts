@@ -93,33 +93,33 @@ let playerInitTime = initChromecastMux.utils.now();
  * @return {Promise} An empty promise.
  */
 function addBreaks(mediaInformation: MediaInformation) {
-  let vastTemplate = new cast.framework.messages.VastAdsRequest();
-  vastTemplate.adTagUrl =
-    "https://pubads.g.doubleclick.net/gampad/ads?iu=/21775744923/external/vmap_ad_samples&sz=640x480&cust_params=sample_ar%3Dpremidpostlongpod&ciu_szs=300x250&gdfp_req=1&ad_rule=1&output=vmap&unviewed_position_start=1&env=vp&impl=s&cmsid=496&vid=short_onecue&correlator=" +
-    new Date().getTime();
-  mediaInformation.vmapAdsRequest = vastTemplate;
+  // let vastTemplate = new cast.framework.messages.VastAdsRequest();
+  // vastTemplate.adTagUrl =
+  //   "https://pubads.g.doubleclick.net/gampad/ads?iu=/21775744923/external/vmap_ad_samples&sz=640x480&cust_params=sample_ar%3Dpremidpostlongpod&ciu_szs=300x250&gdfp_req=1&ad_rule=1&output=vmap&unviewed_position_start=1&env=vp&impl=s&cmsid=496&vid=short_onecue&correlator=" +
+  //   new Date().getTime();
+  // mediaInformation.vmapAdsRequest = vastTemplate;
 
-  // castDebugLogger.debug(LOG_RECEIVER_TAG, "addBreaks: " + JSON.stringify(mediaInformation));
-  // return MediaFetcher.fetchMediaById("fbb_ad").then((clip1) => {
-  //   mediaInformation.breakClips = [
-  //     {
-  //       id: "fbb_ad",
-  //       title: clip1.title,
-  //       contentUrl: clip1.stream.dash,
-  //       contentType: "application/dash+xml",
-  //       whenSkippable: 5,
-  //     },
-  //   ];
+  castDebugLogger.debug(LOG_RECEIVER_TAG, "addBreaks: " + JSON.stringify(mediaInformation));
+  return MediaFetcher.fetchMediaById("fbb_ad").then((clip1) => {
+    mediaInformation.breakClips = [
+      {
+        id: "fbb_ad",
+        title: clip1.title,
+        contentUrl: clip1.stream.dash,
+        contentType: "application/dash+xml",
+        whenSkippable: 5,
+      },
+    ];
 
-  //   mediaInformation.breaks = [
-  //     {
-  //       isWatched: false,
-  //       id: "pre-roll",
-  //       breakClipIds: ["fbb_ad"],
-  //       position: 0,
-  //     },
-  //   ];
-  // });
+    mediaInformation.breaks = [
+      {
+        isWatched: false,
+        id: "pre-roll",
+        breakClipIds: ["fbb_ad"],
+        position: 0,
+      },
+    ];
+  });
 }
 
 playerManager.setMessageInterceptor(cast.framework.messages.MessageType.MEDIA_STATUS, (status) => {
@@ -140,6 +140,26 @@ playerManager.addEventListener(cast.framework.events.category.CORE, (playerEvent
   }
 });
 
+let hasPreparedUi = false;
+
+function prepareUi() {
+  const castMediaPlayer = document.querySelector("cast-media-player");
+  const touchControls = document.querySelector("touch-controls");
+  if (touchControls) {
+    const style = document.createElement("style");
+    style.innerHTML = "goog-break-ui { display:none; }";
+    touchControls.shadowRoot?.appendChild(style);
+  } else {
+    const tvOverlay = castMediaPlayer?.shadowRoot?.querySelector("tv-overlay");
+
+    const style = document.createElement("style");
+    style.innerHTML = `.tv-overlay[data-media-category="VIDEO"][data-is-playing-break="true"] .breakOverlay { display:none !important; }`;
+    tvOverlay?.shadowRoot?.appendChild(style);
+  }
+
+  hasPreparedUi = true;
+}
+
 /*
  * Intercept the LOAD request to load and set the contentUrl.
  */
@@ -147,6 +167,10 @@ playerManager.setMessageInterceptor(
   cast.framework.messages.MessageType.LOAD,
   async (loadRequestData: LoadRequestData) => {
     castDebugLogger.debug(LOG_RECEIVER_TAG, `loadRequestData: ${JSON.stringify(loadRequestData)}`);
+
+    if (!hasPreparedUi) {
+      prepareUi();
+    }
 
     // If the loadRequestData is incomplete, return an error message.
     if (!loadRequestData || !loadRequestData.media) {

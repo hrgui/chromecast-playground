@@ -5,6 +5,44 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Chromecast Playground - Receiver</title>
+    <style>
+      touch-controls {
+        font-family: Arial, Helvetica, sans-serif;
+      }
+    </style>
+
+    <script>
+      window.cast = {
+        __platform__: {
+          queryPlatformValue: function (a) {
+            return (
+              this.__queryPlatformValueStore__.hasOwnProperty(a) &&
+              this.__queryPlatformValueStore__[a]
+            );
+          },
+          __queryPlatformValueStore__: {
+            "device-capabilities": {
+              bluetooth_supported: false,
+              display_supported: true,
+              hi_res_audio_supported: false,
+              remote_control_input_supported: true,
+              touch_input_supported: false,
+            },
+            "receiver-flags": {
+              enable_check_discontinuity_seq_num_for_playlist_reloads: true,
+              is_android: false,
+              enable_dpad_ui: false,
+              enable_hide_controls_on_timer_when_paused: true,
+              enable_set_tsparser_offset_on_insufficient_data: true,
+              enable_synchronize_media_time_with_prev_manifest: true,
+              handle_key_events_on_touch_screens: true,
+              shaka_version_for_u_release: "4.3.4",
+            },
+            "port-for-web-server": 8008,
+          },
+        },
+      };
+    </script>
 
     <script src="//www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
     <!-- Cast Debug Logger -->
