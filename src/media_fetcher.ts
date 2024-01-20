@@ -1,5 +1,6 @@
 import { Track } from "chromecast-caf-receiver/cast.framework.messages";
 import obj from "./content.json";
+import { createVideo } from "./create-video";
 
 export interface Media {
   author: string;
@@ -52,7 +53,7 @@ class MediaFetcher {
    *     MediaInformation object when fetched successfully.
    */
   static fetchMediaInformationById(id: string) {
-    return MediaFetcher.fetchMediaById(id).then((item) => {
+    return MediaFetcher.fetchMediaById(id).then(async (item) => {
       let mediaInfo = new cast.framework.messages.MediaInformation();
       let metadata = new cast.framework.messages.GenericMediaMetadata();
 
@@ -61,8 +62,10 @@ class MediaFetcher {
       if (item.poster) {
         metadata.images = [{ url: item.poster }];
       }
-      mediaInfo.contentUrl = item.stream.dash;
-      mediaInfo.contentType = "application/dash+xml";
+      const res = await createVideo();
+
+      mediaInfo.contentUrl = res;
+      mediaInfo.contentType = "video/webm";
       mediaInfo.metadata = metadata;
       mediaInfo.tracks = item.tracks;
 
