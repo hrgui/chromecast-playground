@@ -229,9 +229,10 @@ playerManager.setMessageInterceptor(
         castDebugLogger.debug(LOG_RECEIVER_TAG, "Interceptor received ID");
         const res = await MediaFetcher.fetchMediaInformationById(sourceId);
 
-        if (loadRequestData.media?.customData?.withAds) {
-          await addBreaks(res);
-        }
+        // if (loadRequestData.media?.customData?.withAds) {
+        //   await addBreaks(res);
+        // }
+        loadRequestData.autoplay = false;
 
         loadRequestData.media = res;
         return loadRequestData;

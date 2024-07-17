@@ -62,10 +62,13 @@ class MediaFetcher {
       if (item.poster) {
         metadata.images = [{ url: item.poster }];
       }
-      const res = await createVideo();
+      //const res = await createVideo();
 
-      mediaInfo.contentUrl = res;
-      mediaInfo.contentType = "video/webm";
+      // mediaInfo.contentUrl = res;
+      mediaInfo.contentUrl = "/test.png";
+      // mediaInfo.mediaCategory = cast.framework.messages.MediaCategory.IMAGE;
+
+      // mediaInfo.contentType = "video/webm";
       mediaInfo.metadata = metadata;
       mediaInfo.tracks = item.tracks;
 
