@@ -1,10 +1,6 @@
 import { CastQueue } from "./queuing";
 import { MediaFetcher } from "./media_fetcher";
-import type {
-  LoadRequestData,
-  MediaInformation,
-} from "chromecast-caf-receiver/cast.framework.messages";
-import initChromecastMux from "@mux/mux-data-chromecast";
+import type { LoadRequestData } from "chromecast-caf-receiver/cast.framework.messages";
 
 /**
  * @fileoverview This sample demonstrates how to build your own Web Receiver for
@@ -31,117 +27,25 @@ const ID_REGEX = "/?([^/]+)/?$";
 const castDebugLogger = cast.debug.CastDebugLogger.getInstance();
 const LOG_RECEIVER_TAG = "Receiver";
 
-/*
- * WARNING: Make sure to turn off debug logger for production release as it
- * may expose details of your app.
- * Uncomment below line to enable debug logger, show a 'DEBUG MODE' tag at
- * top left corner and show debug overlay.
- */
-//  context.addEventListener(cast.framework.system.EventType.READY, () => {
-//   if (!castDebugLogger.debugOverlayElement_) {
-//     /**
-//      *  Enable debug logger and show a 'DEBUG MODE' tag at
-//      *  top left corner.
-//      */
-//       castDebugLogger.setEnabled(true);
+// THE CODE THAT IS NEEDED
 
-//     /**
-//      * Show debug overlay.
-//      */
-//       castDebugLogger.showDebugLogs(true);
-//   }
-// });
+function makeBeaconRequest() {
+  const url = "/api/beacon";
+  const data = new Blob([JSON.stringify({ message: "Hello, Server! " + Date.now() })], {
+    type: "application/json",
+  });
 
-/*
- * Set verbosity level for Core events.
- */
-castDebugLogger.loggerLevelByEvents = {
-  "cast.framework.events.category.CORE": cast.framework.LoggerLevel.INFO,
-  "cast.framework.events.EventType.MEDIA_STATUS": cast.framework.LoggerLevel.DEBUG,
-};
-
-if (!castDebugLogger.loggerLevelByTags) {
-  castDebugLogger.loggerLevelByTags = {};
+  // Send data using navigator.sendBeacon
+  navigator.sendBeacon(url, data);
 }
 
-/*
- * Set verbosity level for custom tag.
- * Enables log messages for error, warn, info and debug.
- */
-castDebugLogger.loggerLevelByTags[LOG_RECEIVER_TAG] = cast.framework.LoggerLevel.DEBUG;
+(window as any).makeBeaconRequest = makeBeaconRequest;
 
-/*
- * Example of how to listen for events on playerManager.
- */
-playerManager.addEventListener(cast.framework.events.EventType.ERROR, (event) => {
-  castDebugLogger.error(LOG_RECEIVER_TAG, "Detailed Error Code - " + event.detailedErrorCode);
-  if (event && event.detailedErrorCode == 905) {
-    castDebugLogger.error(
-      LOG_RECEIVER_TAG,
-      "LOAD_FAILED: Verify the load request is set up " + "properly and the media is able to play."
-    );
-  }
+context.addEventListener(cast.framework.system.EventType.SHUTDOWN, () => {
+  makeBeaconRequest();
 });
 
-let firstPlay = true;
-let playerInitTime = initChromecastMux.utils.now();
-
-/**
- * Modifies the provided mediaInformation by adding a pre-roll break clip to it.
- * @param {cast.framework.messages.MediaInformation} mediaInformation The target
- * MediaInformation to be modified.
- * @return {Promise} An empty promise.
- */
-function addBreaks(mediaInformation: MediaInformation) {
-  let vastTemplate = new cast.framework.messages.VastAdsRequest();
-  vastTemplate.adTagUrl =
-    "https://pubads.g.doubleclick.net/gampad/ads?iu=/21775744923/external/vmap_ad_samples&sz=640x480&cust_params=sample_ar%3Dpremidpostlongpod&ciu_szs=300x250&gdfp_req=1&ad_rule=1&output=vmap&unviewed_position_start=1&env=vp&impl=s&cmsid=496&vid=short_onecue&correlator=" +
-    new Date().getTime();
-  mediaInformation.vmapAdsRequest = vastTemplate;
-
-  // castDebugLogger.debug(LOG_RECEIVER_TAG, "addBreaks: " + JSON.stringify(mediaInformation));
-  // return MediaFetcher.fetchMediaById("fbb_ad").then((clip1) => {
-  //   mediaInformation.breakClips = [
-  //     {
-  //       id: "fbb_ad",
-  //       title: clip1.title,
-  //       contentUrl: clip1.stream.dash,
-  //       contentType: "application/dash+xml",
-  //       whenSkippable: 5,
-  //     },
-  //   ];
-
-  //   mediaInformation.breaks = [
-  //     {
-  //       isWatched: false,
-  //       id: "pre-roll",
-  //       breakClipIds: ["fbb_ad"],
-  //       position: 0,
-  //     },
-  //   ];
-  // });
-}
-
-playerManager.setMessageInterceptor(cast.framework.messages.MessageType.MEDIA_STATUS, (status) => {
-  console.log(JSON.stringify(status));
-
-  return status;
-});
-
-playerManager.addEventListener(cast.framework.events.category.CORE, (playerEvent) => {
-  const context = cast.framework.CastReceiverContext.getInstance();
-  const playerManager = context.getPlayerManager();
-
-  try {
-    console.log(
-      "Call to playerManager.getStats() succeeded",
-      playerEvent.type,
-      playerManager.getStats()
-    );
-  } catch (err) {
-    console.error("Call to playerManager.getStats() failed", playerEvent.type, err);
-  }
-});
+// END THE CODE THAT IS NEEDED
 
 /*
  * Intercept the LOAD request to load and set the contentUrl.
@@ -177,25 +81,6 @@ playerManager.setMessageInterceptor(
 
     const sourceId = source.match(ID_REGEX)?.[1] || "";
 
-    if (firstPlay) {
-      initChromecastMux(playerManager, {
-        debug: false,
-        data: {
-          env_key: import.meta.env.VITE_MUX_ENV_KEY, // required
-
-          // Metadata
-          player_name: "Custom Player", // ex: 'My Main Player'
-          player_init_time: playerInitTime,
-
-          // ... additional metadata
-          video_id: sourceId,
-        },
-      });
-      firstPlay = false;
-    } else {
-      (playerManager as any).mux.emit("videochange", { video_id: sourceId });
-    }
-
     try {
       // If the source is a url that points to an asset don't fetch from the
       // content repository.
@@ -207,10 +92,6 @@ playerManager.setMessageInterceptor(
         // Fetch the contentUrl if provided an ID or entity URL.
         castDebugLogger.debug(LOG_RECEIVER_TAG, "Interceptor received ID");
         const res = await MediaFetcher.fetchMediaInformationById(sourceId);
-
-        if (loadRequestData.media?.customData?.withAds) {
-          await addBreaks(res);
-        }
 
         loadRequestData.media = res;
         return loadRequestData;

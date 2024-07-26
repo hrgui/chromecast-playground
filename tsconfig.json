@@ -21,7 +21,7 @@
     "noFallthroughCasesInSwitch": true,
     "esModuleInterop": true
   },
-  "include": ["src", "tests/base"],
+  "include": ["src", "tests/base", "vite.config.js"],
   "ts-node": {
     "esm": true,
     "experimentalSpecifierResolution": "node",
