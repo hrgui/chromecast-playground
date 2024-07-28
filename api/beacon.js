@@ -1,9 +1,11 @@
-export function GET(request) {
-  console.log("GET /api/beacon", request.body);
+export async function GET(request) {
+  const res = await request.text();
+  console.log("GET /api/beacon", res);
   return new Response(JSON.stringify({ timestamp: Date.now() }));
 }
 
-export function POST(request) {
-  console.log("POST /api/beacon", request.body);
+export async function POST(request) {
+  const res = await request.text();
+  console.log("POST /api/beacon", res);
   return new Response(JSON.stringify({ timestamp: Date.now() }));
 }
