@@ -1,7 +1,9 @@
 function isRequestBodyValid(res) {
   const response = JSON.parse(res);
   const acceptableTypes = ["SHUTDOWN", "STARTUP"];
-  return !isNaN(response.timestamp) && !isNaN(response.id) && acceptableTypes.includes(res.type);
+  return (
+    !isNaN(response.timestamp) && !isNaN(response.id) && acceptableTypes.includes(response.type)
+  );
 }
 
 export async function GET(request) {
