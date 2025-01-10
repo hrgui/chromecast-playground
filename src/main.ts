@@ -1,7 +1,6 @@
 import { CastQueue } from "./queuing";
 import { MediaFetcher } from "./media_fetcher";
 import type { LoadRequestData } from "chromecast-caf-receiver/cast.framework.messages";
-import { setupShutdownListener } from "./setupShutdownListener";
 
 /**
  * @fileoverview This sample demonstrates how to build your own Web Receiver for
@@ -197,6 +196,4 @@ castReceiverOptions.queue = new CastQueue();
  * line below to enable the queue.
  */
 // castReceiverOptions.queue = new CastQueue();
-
-setupShutdownListener(context);
 context.start(castReceiverOptions);
