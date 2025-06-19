@@ -1,4 +1,4 @@
-import { createLoadEvent, identifyMessageEvent, loadEvent, SENDER_ID } from "./events";
+import { createLoadEvent, identifyMessageEvent, SENDER_ID } from "./events";
 
 export class ScenarioBuilder {
   currentTime = 0;
