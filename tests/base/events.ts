@@ -59,3 +59,14 @@ export const loadEvent = {
   namespace: "urn:x-cast:com.google.cast.media",
   senderId: SENDER_ID,
 };
+
+export function createLoadEvent(overrides: any = {}) {
+  return {
+    data: JSON.stringify({
+      ...loadMessage,
+      ...overrides,
+    }),
+    namespace: "urn:x-cast:com.google.cast.media",
+    senderId: SENDER_ID,
+  };
+}

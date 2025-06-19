@@ -1,5 +1,4 @@
-import { identifyMessageEvent, loadEvent, SENDER_ID } from "./events";
-import merge from "lodash.merge";
+import { createLoadEvent, identifyMessageEvent, loadEvent, SENDER_ID } from "./events";
 
 export class ScenarioBuilder {
   currentTime = 0;
@@ -13,8 +12,11 @@ export class ScenarioBuilder {
   addLoadEvent(loadOverrides?: any): ScenarioBuilder {
     this.events.push({
       time: this.getAndIncrementTime(),
-      ipcMessage: JSON.stringify(merge(loadEvent, loadOverrides)),
+      ipcMessage: JSON.stringify(createLoadEvent(loadOverrides)),
     });
+
+    console.log(loadEvent, loadOverrides);
+    //process.exit(1);
 
     return this;
   }
