@@ -1,4 +1,13 @@
 {
+  "avc-full": {
+    "author": "avc-full",
+    "description": "avc-full",
+    "duration": 3600,
+    "stream": {
+      "dash": "https://vod-dash-ww-rd-live.akamaized.net/testcard/2/manifests/avc-full.mpd"
+    },
+    "title": "avc-full"
+  },
   "bbb": {
     "author": "The Blender Project",
     "description": "Grumpy Bunny is grumpy",
