@@ -15,9 +15,6 @@ export class ScenarioBuilder {
       ipcMessage: JSON.stringify(createLoadEvent(loadOverrides)),
     });
 
-    console.log(loadEvent, loadOverrides);
-    //process.exit(1);
-
     return this;
   }
 
