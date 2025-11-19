@@ -6,8 +6,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Chromecast Playground - Receiver</title>
 
+    <style>
+      #sub-root {
+        position: absolute;
+        left: 0;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        overflow: hidden;
+        z-index: 40;
+      }
+
+      .ass-line {
+        position: absolute;
+        white-space: pre;
+        font-family: Arial, sans-serif;
+        font-size: 32px;
+        color: white;
+        will-change: transform, opacity;
+        transform-origin: top left;
+        text-shadow: 0 0 4px black;
+        background: blue;
+      }
+    </style>
     <script>
-      window.cast = {
+      window.cast = window.cast || {
         __platform__: {
           queryPlatformValue: function (a) {
             return (
@@ -44,7 +68,143 @@
     <script src="//www.gstatic.com/cast/sdk/libs/devtools/debug_layer/caf_receiver_logger.js"></script>
   </head>
   <body>
+    <div id="sub-root"></div>
     <cast-media-player></cast-media-player>
     <script type="module" src="/src/main.ts"></script>
+
+    <script>
+      // ----------------------------
+      // Video-Agnostic ASS Renderer
+      // ----------------------------
+      function createRenderer(root, lines, preloadWindow = 1.0) {
+        lines.sort((a, b) => a.start - b.start);
+        let activeLines = [];
+
+        function evalMove(line, t) {
+          const m = line.move;
+          if (!m) return line.pos || { x: 0, y: 0 };
+          const { x1, y1, x2, y2, t1, t2 } = m;
+          if (t < t1) return { x: x1, y: y1 };
+          if (t > t2) return { x: x2, y: y2 };
+          const p = (t - t1) / (t2 - t1);
+          return { x: x1 + (x2 - x1) * p, y: y1 + (y2 - y1) * p };
+        }
+
+        let currentTime = 0;
+        function setTime(t) {
+          currentTime = t;
+        }
+
+        function loop() {
+          const t = currentTime;
+
+          // 1️⃣ Preload new lines just-in-time
+          for (let line of lines) {
+            if (!line.el && t >= line.start - preloadWindow && t <= line.end) {
+              // Create DOM element
+              const el = document.createElement("div");
+              el.className = "ass-line";
+              el.textContent = line.text;
+              el.style.opacity = 0;
+              el.style.willChange = "transform, opacity";
+              root.appendChild(el);
+              line.el = el;
+              activeLines.push(line);
+            }
+          }
+
+          // 2️⃣ Update active lines
+          for (let i = activeLines.length - 1; i >= 0; i--) {
+            const line = activeLines[i];
+            const active = t >= line.start && t <= line.end;
+
+            if (!active) {
+              // Remove expired lines
+              if (line.el && t > line.end) {
+                root.removeChild(line.el);
+                // clear references so the element can be recreated on a time reset
+                line.el = null;
+                line._lastTransform = undefined;
+                activeLines.splice(i, 1);
+              } else if (line.el) {
+                line.el.style.opacity = 0;
+              }
+              continue;
+            }
+
+            // Fade in
+            if (line.el.style.opacity !== "1") line.el.style.opacity = 1;
+
+            // Update transform
+            const { x, y } = evalMove(line, t);
+            const desired = `translate(${x}px, ${y}px)`;
+            if (line._lastTransform !== desired) {
+              line.el.style.transform = desired;
+              line._lastTransform = desired;
+            }
+          }
+
+          requestAnimationFrame(loop);
+        }
+
+        requestAnimationFrame(loop);
+
+        return { setTime };
+      }
+
+      // ----------------------------
+      // Example subtitle lines
+      // ----------------------------
+      const lines = [
+        {
+          text: "Hello world!",
+          start: 2,
+          end: 6,
+          move: { x1: 100, y1: 400, x2: 500, y2: 400, t1: 2, t2: 4 },
+        },
+        {
+          text: "Preloaded just-in-time",
+          start: 5,
+          end: 9,
+          pos: { x: 200, y: 450 },
+        },
+        {
+          text: "Smooth 60fps even on old devices",
+          start: 7,
+          end: 12,
+          move: { x1: 50, y1: 300, x2: 550, y2: 300, t1: 7, t2: 10 },
+        },
+      ];
+
+      // ----------------------------
+      // Instantiate renderer
+      // ----------------------------
+      const renderer = createRenderer(document.getElementById("sub-root"), lines);
+
+      // ----------------------------
+      // Fake time loop (simulate 60fps)
+      // ----------------------------
+      let t = 0;
+      function timeLoop() {
+        // If everything has finished (no line has end >= t), restart from 0
+        const allEnded = lines.every((line) => t > line.end);
+        if (allEnded) {
+          // reset time back to 0 so subtitles loop
+          t = 0;
+          // clear any lingering references for safety (elements already removed in renderer)
+          for (let line of lines) {
+            if (line.el && !document.body.contains(line.el)) {
+              line.el = null;
+              line._lastTransform = undefined;
+            }
+          }
+        }
+
+        renderer.setTime(t);
+        t += 0.016; // ~60fps
+        requestAnimationFrame(timeLoop);
+      }
+      requestAnimationFrame(timeLoop);
+    </script>
   </body>
 </html>
