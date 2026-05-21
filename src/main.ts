@@ -2,6 +2,8 @@ import { CastQueue } from "./queuing";
 import { MediaFetcher } from "./media_fetcher";
 import type { LoadRequestData } from "chromecast-caf-receiver/cast.framework.messages";
 
+const START_WITH_LOW_BITRATE = true;
+
 /**
  * @fileoverview This sample demonstrates how to build your own Web Receiver for
  * use with Google Cast. The main receiver implementation is provided in this
@@ -26,6 +28,37 @@ const ID_REGEX = "/?([^/]+)/?$";
  */
 const castDebugLogger = cast.debug.CastDebugLogger.getInstance();
 const LOG_RECEIVER_TAG = "Receiver";
+
+const bitrateHistoryList = document.getElementById(
+  "bitrate-history-list",
+) as HTMLOListElement | null;
+const bitrateHistory: number[] = [];
+
+const formatBitrate = (bitsPerSecond: number) => {
+  if (bitsPerSecond >= 1_000_000) {
+    return `${(bitsPerSecond / 1_000_000).toFixed(2)} Mbps`;
+  }
+  if (bitsPerSecond >= 1_000) {
+    return `${Math.round(bitsPerSecond / 1_000)} kbps`;
+  }
+  return `${bitsPerSecond} bps`;
+};
+
+const addBitrateHistoryEntry = (bitrate: number) => {
+  bitrateHistory.push(bitrate);
+  if (!bitrateHistoryList) return;
+
+  const entry = document.createElement("li");
+  entry.textContent = formatBitrate(bitrate);
+  bitrateHistoryList.appendChild(entry);
+  bitrateHistoryList.scrollTop = bitrateHistoryList.scrollHeight;
+};
+
+const clearBitrateHistory = () => {
+  bitrateHistory.length = 0;
+  if (!bitrateHistoryList) return;
+  bitrateHistoryList.innerHTML = "";
+};
 
 /*
  * WARNING: Make sure to turn off debug logger for production release as it
@@ -74,9 +107,15 @@ playerManager.addEventListener(cast.framework.events.EventType.ERROR, (event) =>
   if (event && event.detailedErrorCode == 905) {
     castDebugLogger.error(
       LOG_RECEIVER_TAG,
-      "LOAD_FAILED: Verify the load request is set up " + "properly and the media is able to play."
+      "LOAD_FAILED: Verify the load request is set up " + "properly and the media is able to play.",
     );
   }
+});
+
+playerManager.addEventListener(cast.framework.events.EventType.BITRATE_CHANGED, (event) => {
+  const bitrate = event.totalBitrate ?? 0;
+  castDebugLogger.info(LOG_RECEIVER_TAG, `Bitrate changed: ${bitrate}`);
+  addBitrateHistoryEntry(bitrate);
 });
 
 /*
@@ -90,11 +129,14 @@ playerManager.setMessageInterceptor(
     // If the loadRequestData is incomplete, return an error message.
     if (!loadRequestData || !loadRequestData.media) {
       const error = new cast.framework.messages.ErrorData(
-        cast.framework.messages.ErrorType.LOAD_FAILED
+        cast.framework.messages.ErrorType.LOAD_FAILED,
       );
       error.reason = cast.framework.messages.ErrorReason.INVALID_REQUEST;
       return error;
     }
+
+    // Clear previous episode bitrate history before loading new content.
+    clearBitrateHistory();
 
     // Check all content source fields for the asset URL or ID.
     let source =
@@ -105,7 +147,7 @@ playerManager.setMessageInterceptor(
     // If there is no source or a malformed ID then return an error.
     if (!source || source == "" || !source.match(ID_REGEX)) {
       let error = new cast.framework.messages.ErrorData(
-        cast.framework.messages.ErrorType.LOAD_FAILED
+        cast.framework.messages.ErrorType.LOAD_FAILED,
       );
       error.reason = cast.framework.messages.ErrorReason.INVALID_REQUEST;
       return error;
@@ -129,13 +171,13 @@ playerManager.setMessageInterceptor(
       }
     } catch (errorMessage) {
       let error = new cast.framework.messages.ErrorData(
-        cast.framework.messages.ErrorType.LOAD_FAILED
+        cast.framework.messages.ErrorType.LOAD_FAILED,
       );
       error.reason = cast.framework.messages.ErrorReason.INVALID_REQUEST;
       castDebugLogger.error(LOG_RECEIVER_TAG, errorMessage);
       return error as unknown as LoadRequestData;
     }
-  }
+  },
 );
 
 /*
@@ -147,19 +189,19 @@ controls.clearDefaultSlotAssignments();
 // Assign buttons to control slots.
 controls.assignButton(
   cast.framework.ui.ControlsSlot.SLOT_SECONDARY_1,
-  cast.framework.ui.ControlsButton.QUEUE_PREV
+  cast.framework.ui.ControlsButton.QUEUE_PREV,
 );
 controls.assignButton(
   cast.framework.ui.ControlsSlot.SLOT_PRIMARY_1,
-  cast.framework.ui.ControlsButton.CAPTIONS
+  cast.framework.ui.ControlsButton.CAPTIONS,
 );
 controls.assignButton(
   cast.framework.ui.ControlsSlot.SLOT_PRIMARY_2,
-  cast.framework.ui.ControlsButton.SEEK_FORWARD_15
+  cast.framework.ui.ControlsButton.SEEK_FORWARD_15,
 );
 controls.assignButton(
   cast.framework.ui.ControlsSlot.SLOT_SECONDARY_2,
-  cast.framework.ui.ControlsButton.QUEUE_NEXT
+  cast.framework.ui.ControlsButton.QUEUE_NEXT,
 );
 
 /*
@@ -172,10 +214,20 @@ const castReceiverOptions = new cast.framework.CastReceiverOptions();
  */
 const playbackConfig = new cast.framework.PlaybackConfig();
 playbackConfig.autoResumeDuration = 5;
+
+if (START_WITH_LOW_BITRATE) {
+  playbackConfig.shakaConfig = {
+    abr: {
+      useNetworkInformation: false,
+      defaultBandwidthEstimate: 5e5,
+    },
+  };
+}
+
 castReceiverOptions.playbackConfig = playbackConfig;
 castDebugLogger.info(
   LOG_RECEIVER_TAG,
-  `autoResumeDuration set to: ${playbackConfig.autoResumeDuration}`
+  `autoResumeDuration set to: ${playbackConfig.autoResumeDuration}`,
 );
 
 /*

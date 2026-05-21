@@ -55,7 +55,7 @@ class CastQueue extends cast.framework.QueueBase {
    **/
   nextItems() {
     // Fetch and return sample content with populated metadata.
-    return MediaFetcher.fetchMediaInformationById("bbb").then((mediaInformation) => {
+    return MediaFetcher.fetchMediaInformationById("avc-full").then((mediaInformation) => {
       let item = new cast.framework.messages.QueueItem();
       item.media = mediaInformation;
       item.media.customData = { isSuggested: true };
