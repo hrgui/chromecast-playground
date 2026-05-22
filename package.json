@@ -11,7 +11,7 @@
     "run-scenario": "node"
   },
   "devDependencies": {
-    "@playwright/test": "^1.36.1",
+    "@playwright/test": "^1.60.0",
     "@types/chromecast-caf-receiver": "^6.0.9",
     "@types/lodash.merge": "^4.6.7",
     "body-parser": "^1.20.2",
