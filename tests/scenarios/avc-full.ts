@@ -1,5 +1,5 @@
 import CastDeviceEmulator from "chromecast-device-emulator";
-import { ScenarioBuilder } from "../base/ScenarioBuilder";
+import { ScenarioBuilder } from "../base/ScenarioBuilder.ts";
 
 export function execute() {
   const scenarioBuilder = new ScenarioBuilder();
@@ -12,7 +12,7 @@ export function execute() {
         },
       })
       .closedCaptionsOn()
-      .build()
+      .build(),
   );
   emulator.start();
 }
