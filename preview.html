@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chromecast Playground - Receiver</title>
+
+    <style>
+      #bitrate-history {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        z-index: 10000;
+        max-width: 320px;
+        background: rgba(0, 0, 0, 0.78);
+        color: #ffffff;
+        padding: 12px 14px;
+        border-radius: 14px;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+      }
+      #bitrate-history .title {
+        margin: 0 0 8px;
+        font-size: 0.95rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
+      #bitrate-history-list {
+        margin: 0;
+        padding-left: 1.2em;
+        list-style-position: inside;
+        max-height: min(220px, 33vh);
+        overflow-y: auto;
+        font-size: 0.85rem;
+        line-height: 1.45;
+      }
+      #bitrate-history-list li {
+        margin-bottom: 0.35rem;
+      }
+      #bitrate-history-list li:last-child {
+        margin-bottom: 0;
+      }
+    </style>
+
+    <script>
+      window.cast = {
+        __platform__: {
+          queryPlatformValue: function (a) {
+            return (
+              this.__queryPlatformValueStore__.hasOwnProperty(a) &&
+              this.__queryPlatformValueStore__[a]
+            );
+          },
+          __queryPlatformValueStore__: {
+            "device-capabilities": {
+              bluetooth_supported: false,
+              display_supported: true,
+              hi_res_audio_supported: false,
+              remote_control_input_supported: true,
+              touch_input_supported: false,
+            },
+            "receiver-flags": {
+              enable_check_discontinuity_seq_num_for_playlist_reloads: true,
+              is_android: false,
+              enable_dpad_ui: false,
+              enable_hide_controls_on_timer_when_paused: true,
+              enable_set_tsparser_offset_on_insufficient_data: true,
+              enable_synchronize_media_time_with_prev_manifest: true,
+              handle_key_events_on_touch_screens: true,
+              shaka_version_for_u_release: "4.15.35",
+            },
+            "port-for-web-server": 8008,
+          },
+        },
+      };
+    </script>
+
+    <script src="//www.gstatic.com/cast/sdk/libs/caf_receiver/preview/cast_receiver_framework.js"></script>
+    <!-- Cast Debug Logger -->
+    <script src="//www.gstatic.com/cast/sdk/libs/devtools/debug_layer/caf_receiver_logger.js"></script>
+  </head>
+  <body>
+    <cast-media-player></cast-media-player>
+    <div id="bitrate-history" aria-live="polite">
+      <div class="title">Bitrate history</div>
+      <ol id="bitrate-history-list"></ol>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
