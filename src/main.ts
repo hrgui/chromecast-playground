@@ -86,6 +86,7 @@ playerManager.setMessageInterceptor(
   cast.framework.messages.MessageType.LOAD,
   async (loadRequestData: LoadRequestData) => {
     castDebugLogger.debug(LOG_RECEIVER_TAG, `loadRequestData: ${JSON.stringify(loadRequestData)}`);
+    playerManager.setPlaybackConfig(playbackConfig);
 
     // If the loadRequestData is incomplete, return an error message.
     if (!loadRequestData || !loadRequestData.media) {
@@ -177,6 +178,48 @@ castDebugLogger.info(
   LOG_RECEIVER_TAG,
   `autoResumeDuration set to: ${playbackConfig.autoResumeDuration}`
 );
+
+playbackConfig.manifestHandler = (manifest: string) => {
+  castDebugLogger.debug(LOG_RECEIVER_TAG, `Manifest Handler called with manifest: ${manifest}`);
+
+  // string to XML
+  try {
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(manifest, "application/xml");
+    const allRoles = Array.from(xmlDoc.getElementsByTagName("Role"));
+
+    allRoles.forEach((role) => {
+      // get parent node
+      const parentElement = role.parentElement;
+      if (!parentElement) {
+        return;
+      }
+
+      if (parentElement.tagName !== "AdaptationSet") {
+        return;
+      }
+
+      const roleValue = role.getAttribute("value");
+      const contentType = parentElement.getAttribute("contentType");
+
+      if (contentType !== "audio") {
+        return;
+      }
+
+      const lang = parentElement.getAttribute("lang");
+      parentElement.setAttribute("lang", [lang, roleValue].join("_"));
+    });
+
+    // XML back to string
+    const serializer = new XMLSerializer();
+    return serializer.serializeToString(xmlDoc);
+  } catch (error) {
+    console.error("manifestHandler", error);
+  }
+
+  // You can modify the manifest here if needed.
+  return manifest;
+};
 
 /*
  * Set the SupportedMediaCommands.
